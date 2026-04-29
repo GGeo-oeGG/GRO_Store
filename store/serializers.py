@@ -24,11 +24,11 @@ class SubCategorySerializer(serializers.ModelSerializer):
         model = SubCategory
         product = ProductSerializer(many=True, read_only=True)
 
-        fields = ["name", "slug", "product"]
+        fields = ["name", "slug"]
         read_only_fields = ["slug"]
 
 
-class CategorySerializers(serializers.ModelSerializer):
+class CategorySerializer(serializers.ModelSerializer):
     """ Сериализатор категории. """
 
     class Meta:
@@ -37,5 +37,5 @@ class CategorySerializers(serializers.ModelSerializer):
         subcategory = SubCategorySerializer(many=True, read_only=True)
         product = ProductSerializer(many=True, read_only=True)
 
-        fields = ["name", "slug", "subcategory", "product"]
+        fields = ["name", "slug"]
         read_only_fields = ["slug"]

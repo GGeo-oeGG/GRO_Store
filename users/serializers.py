@@ -10,5 +10,5 @@ class CustomUserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = [
             "email",
-            "phone_number",
+            "name",
         ]

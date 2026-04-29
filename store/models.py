@@ -1,12 +1,14 @@
 from django.db import models
 from django.db.models import SET_NULL, PROTECT, CASCADE
 from django.utils.text import slugify
+from config.settings import AUTH_USER_MODEL
 
 
 class Category(models.Model):
     """ Категория продукта. """
 
-    name = models.CharField(unique=True, verbose_name="название")
+    name = models.CharField(unique=True, verbose_name="категория")
+    image = models.ImageField(upload_to="media/category/", null=True, blank=True, verbose_name="изображение")
     slug = models.SlugField(unique=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="создан")
@@ -16,8 +18,7 @@ class Category(models.Model):
         return f"{self.name}"
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
+        self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
     class Meta:
@@ -29,10 +30,11 @@ class Category(models.Model):
 class SubCategory(models.Model):
     """ Подкатегория продукта. """
 
-    name = models.CharField(unique=True, verbose_name="название")
+    name = models.CharField(unique=True, verbose_name="подкатегория")
+    image = models.ImageField(upload_to="media/sub_category/", null=True, blank=True, verbose_name="изображение")
     slug = models.SlugField(unique=True, blank=True)
     category = models.ForeignKey("Category", on_delete=SET_NULL, null=True, verbose_name="категория",
-                                 related_name="sub_category")
+                                 related_name="sub_categories")
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="создан")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="обновлён")
@@ -41,8 +43,7 @@ class SubCategory(models.Model):
         return f"{self.name}"
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
+        self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
     class Meta:
@@ -55,10 +56,10 @@ class Product(models.Model):
     """ Продукт. """
 
     name = models.CharField(unique=True, verbose_name="название")
-    sub_category = models.ForeignKey("SubCategory", on_delete=SET_NULL, null=True, verbose_name="категория",
-                                     related_name="product")
+    image = models.ImageField(upload_to="media/products/", null=True, blank=True, verbose_name="изображение")
     slug = models.SlugField(unique=True, blank=True)
-    image = models.ImageField(upload_to="images/", null=True, blank=True, verbose_name="изображение")
+    category = models.ForeignKey("SubCategory", on_delete=SET_NULL, null=True, verbose_name="категория",
+                                 related_name="products")
     price = models.DecimalField(max_digits=14, decimal_places=2, default=0.0, verbose_name="цена")
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="создан")
@@ -68,8 +69,7 @@ class Product(models.Model):
         return f"{self.name}"
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
+        self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
     class Meta:
@@ -81,7 +81,7 @@ class Product(models.Model):
 class Cart(models.Model):
     """ Корзина. """
 
-    owner = models.ForeignKey("CustomUser", on_delete=PROTECT, related_name="user")
+    owner = models.ForeignKey(AUTH_USER_MODEL, on_delete=PROTECT, related_name="carts")
 
     class Meta:
         db_table = "cart"
@@ -98,4 +98,5 @@ class CartProduct(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="обновлён")
 
     class Meta:
+        unique_together = ("cart", "product")
         db_table = "cart_product"

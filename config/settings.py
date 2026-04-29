@@ -13,7 +13,7 @@ SECRET_KEY = env.str("SECRET_KEY")
 
 DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -64,16 +64,11 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'users.permissions.ActiveUserPermission',
-        'rest_framework.permissions.IsAuthenticated',
-    ],
     'DEFAULT_FILTER_BACKENDS': (
-        'django_filters.rest_framework.DjangoFilterBackend'
+        'django_filters.rest_framework.DjangoFilterBackend',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
     ],
 
     'DEFAULT_SCHEMA_CLASS':
@@ -84,7 +79,7 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'User Management API',
-    'DESCRIPTION': 'API для регистрации, получения и удаления пользователей.',
+    'DESCRIPTION': 'API документация приложения "GRO-store".',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
@@ -144,7 +139,7 @@ LOGOUT_REDIRECT_URL = "/"
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1"}
+        "LOCATION": env.str("REDIS_LOCATION")}
 }
 
 LOGGING = {

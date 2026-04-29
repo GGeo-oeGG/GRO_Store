@@ -19,6 +19,7 @@ dependencies = [
     "ruff>=0.14.10",
     "orjson>=3.11.5",
     "uvicorn>=0.38.0",
+    "autoslug>=1.0.6",
 ]
 
 
