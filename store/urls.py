@@ -15,6 +15,7 @@ from store.views import (
     InfoProduct,
     ListProduct,
     DeleteProduct,
+
 )
 
 app_name = 'store'

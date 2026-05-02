@@ -1,25 +1,27 @@
 from django.db import models
+from imagekit.models import ImageSpecField
+from imagekit.processors import ResizeToFill
 from django.db.models import SET_NULL, PROTECT, CASCADE
-from django.utils.text import slugify
 from config.settings import AUTH_USER_MODEL
+from store.mixins import AutoSlugMixin
 
 
-class Category(models.Model):
+class Category(AutoSlugMixin, models.Model):
     """ Категория продукта. """
 
-    name = models.CharField(unique=True, verbose_name="категория")
-    image = models.ImageField(upload_to="media/category/", null=True, blank=True, verbose_name="изображение")
-    slug = models.SlugField(unique=True, blank=True)
+    name = models.CharField(unique=True, max_length=50, verbose_name="категория")
+    image = models.ImageField(
+        upload_to="category/",
+        null=True, blank=True,
+        verbose_name="изображение"
+    )
+    slug = models.SlugField(unique=True, blank=True)  # blank = True - чтобы на пустое поле не ругалась админка
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="создан")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="обновлён")
 
     def __str__(self):
         return f"{self.name}"
-
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Категория"
@@ -27,14 +29,22 @@ class Category(models.Model):
         db_table = "category"
 
 
-class SubCategory(models.Model):
+class SubCategory(AutoSlugMixin, models.Model):
     """ Подкатегория продукта. """
 
-    name = models.CharField(unique=True, verbose_name="подкатегория")
-    image = models.ImageField(upload_to="media/sub_category/", null=True, blank=True, verbose_name="изображение")
-    slug = models.SlugField(unique=True, blank=True)
-    category = models.ForeignKey("Category", on_delete=SET_NULL, null=True, verbose_name="категория",
-                                 related_name="sub_categories")
+    name = models.CharField(unique=True, max_length=50, verbose_name="подкатегория")
+    image = models.ImageField(
+        upload_to="sub_category/",
+        null=True, blank=True,
+        verbose_name="изображение")
+    category = models.ForeignKey(
+        "Category",
+        on_delete=SET_NULL,
+        null=True,
+        verbose_name="категория",
+        related_name="sub_categories"
+    )
+    slug = models.SlugField(unique=True, blank=True)  # blank = True - чтобы на пустое поле не ругалась админка
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="создан")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="обновлён")
@@ -42,24 +52,24 @@ class SubCategory(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
-
     class Meta:
         verbose_name = "Подкатегория"
         verbose_name_plural = "Подкатегории"
         db_table = "sub_category"
 
 
-class Product(models.Model):
+class Product(AutoSlugMixin, models.Model):
     """ Продукт. """
 
-    name = models.CharField(unique=True, verbose_name="название")
-    image = models.ImageField(upload_to="media/products/", null=True, blank=True, verbose_name="изображение")
-    slug = models.SlugField(unique=True, blank=True)
-    category = models.ForeignKey("SubCategory", on_delete=SET_NULL, null=True, verbose_name="категория",
-                                 related_name="products")
+    name = models.CharField(unique=True, max_length=50, verbose_name="название")
+    category = models.ForeignKey(
+        "SubCategory",
+        on_delete=SET_NULL,
+        null=True,
+        verbose_name="категория",
+        related_name="products"
+    )
+    slug = models.SlugField(unique=True, blank=True)  # blank = True - чтобы на пустое поле не ругалась админка
     price = models.DecimalField(max_digits=14, decimal_places=2, default=0.0, verbose_name="цена")
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="создан")
@@ -68,14 +78,38 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
-
     class Meta:
         verbose_name = "Продукт"
         verbose_name_plural = "Продукты"
         db_table = "product"
+
+
+class ProductImages(models.Model):
+    """ Изображения для продуктов. """
+
+    product = models.ForeignKey("Product", on_delete=CASCADE, related_name="images")
+    image = models.ImageField(
+        upload_to="products/",
+        null=True, blank=True,
+        verbose_name="изображения"
+    )
+    image_small = ImageSpecField(source='image',
+                                 processors=[ResizeToFill(100, 100)],
+                                 format='JPEG',
+                                 options={'quality': 85})
+    image_medium = ImageSpecField(source='image',
+                                  processors=[ResizeToFill(600, 600)],
+                                  format='JPEG',
+                                  options={'quality': 85})
+    image_large = ImageSpecField(source='image',
+                                 processors=[ResizeToFill(1200, 1200)],
+                                 format='JPEG',
+                                 options={'quality': 85})
+
+    order = models.PositiveSmallIntegerField(default=1)
+
+    class Meta:
+        db_table = "product_images"
 
 
 class Cart(models.Model):
@@ -90,8 +124,8 @@ class Cart(models.Model):
 class CartProduct(models.Model):
     """ Промежуточная модель корзина-товар. """
 
-    cart = models.ForeignKey("Cart", on_delete=CASCADE)
-    product = models.ForeignKey("Product", on_delete=CASCADE)
+    cart = models.ForeignKey("Cart", on_delete=SET_NULL, null=True)
+    product = models.ForeignKey("Product", on_delete=SET_NULL, null=True)
     quantity = models.PositiveSmallIntegerField(default=1)
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="создан")

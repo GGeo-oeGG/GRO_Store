@@ -68,19 +68,22 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
 
     'DEFAULT_SCHEMA_CLASS':
         'drf_spectacular.openapi.AutoSchema',
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 100
+    'DEFAULT_PAGINATION_CLASS': "rest_framework.pagination.PageNumberPagination",
+    'PAGE_SIZE': 10,
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'User Management API',
+    'TITLE': 'API Docs',
     'DESCRIPTION': 'API документация приложения "GRO-store".',
-    'VERSION': '1.0.0',
+    'VERSION': '1.0.1',
     'SERVE_INCLUDE_SCHEMA': False,
 }
 

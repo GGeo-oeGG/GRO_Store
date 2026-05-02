@@ -9,6 +9,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     list_display = [
         "name",
+        "image",
         "price",
         "created_at",
     ]
@@ -20,6 +21,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
     list_display = [
         "name",
+        "image",
         "created_at",
     ]
 
@@ -33,6 +35,7 @@ class SubCategoryAdmin(admin.ModelAdmin):
 
     list_display = [
         "name",
+        "image",
         "created_at",
     ]
 

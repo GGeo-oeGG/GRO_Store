@@ -1,12 +1,8 @@
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter
 from rest_framework.generics import (
     CreateAPIView,
     DestroyAPIView,
-    ListAPIView,
     RetrieveAPIView,
     RetrieveUpdateAPIView,
-    UpdateAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
 
@@ -14,11 +10,13 @@ from users.mixins import CurrentCustomUserMixin, users_tags_mixin
 from users.permissions import OwnerOnlyPerm
 from users.serializers import CustomUserSerializer
 
+
 @users_tags_mixin
 class CreateCustomUser(CurrentCustomUserMixin, CreateAPIView):
     """Создание пользователя."""
 
     serializer_class = CustomUserSerializer
+
 
 @users_tags_mixin
 class UpdateCustomUser(CurrentCustomUserMixin, RetrieveUpdateAPIView):
@@ -26,11 +24,13 @@ class UpdateCustomUser(CurrentCustomUserMixin, RetrieveUpdateAPIView):
 
     serializer_class = CustomUserSerializer
 
+
 @users_tags_mixin
 class CustomUserDetail(CurrentCustomUserMixin, RetrieveAPIView):
     """Просмотр данных пользователя."""
 
     serializer_class = CustomUserSerializer
+
 
 @users_tags_mixin
 class DeleteCustomUser(CurrentCustomUserMixin, DestroyAPIView):

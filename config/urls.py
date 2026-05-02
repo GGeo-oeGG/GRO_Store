@@ -5,8 +5,7 @@ from rest_framework.routers import DefaultRouter
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
-    SpectacularSwaggerView
-)
+    SpectacularSwaggerView)
 
 router = DefaultRouter()
 urlpatterns = [
