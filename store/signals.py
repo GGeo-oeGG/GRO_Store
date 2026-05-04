@@ -8,19 +8,17 @@ MODELS_LIST = ['Category', 'SubCategory', 'ProductImages']
 
 @receiver(post_delete)
 def auto_delete_image_on_delete(sender, instance, **kwargs):
-    """ Удаление связанных изображений моделей. """
-
+    """Удаление связанных изображений моделей."""
     if sender.__name__ in MODELS_LIST:
         if hasattr(instance, 'image'):
-            image_field = getattr(instance, 'image')
+            image_field = instance.image
             if image_field:
                 image_field.delete(save=False)
 
 
 @receiver(pre_save)
 def auto_delete_file_on_change(sender, instance, **kwargs):
-    """ Удаление старого изображения при загрузке нового. """
-
+    """Удаление старого изображения при загрузке нового."""
     if sender.__name__ in MODELS_LIST and hasattr(instance, 'image'):
 
         if not instance.pk:

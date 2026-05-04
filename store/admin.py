@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from store.models import Product, Category, SubCategory
+from store.models import Category, Product, SubCategory
 
 
 @admin.register(Product)
@@ -9,7 +9,6 @@ class ProductAdmin(admin.ModelAdmin):
 
     list_display = [
         "name",
-        "image",
         "price",
         "created_at",
     ]

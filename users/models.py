@@ -17,6 +17,7 @@ class CustomUser(AbstractUser):
     ]
 
     def __str__(self):
+        """Возврат удобного текста.."""
         return f"{self.email}"
 
     class Meta:

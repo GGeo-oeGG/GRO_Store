@@ -8,7 +8,7 @@ from users.serializers import CustomUserSerializer
 
 
 class CurrentCustomUserMixin:
-    """ Ограничение доступа только к текущему пользователю. """
+    """Ограничение доступа только к текущему пользователю."""
 
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -18,7 +18,7 @@ class CurrentCustomUserMixin:
         return CustomUser.objects.filter(id=self.request.user.id)
 
 def drf_spectacular_tags(tags_list):
-    """ Декоратор для добавления тегов в документации. """
+    """Декоратор для добавления тегов в документации."""
 
     def decorator(cls):
         return extend_schema(tags=tags_list)(cls)

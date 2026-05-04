@@ -1,18 +1,19 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
 from store.mixins import ImageSerializeMixin
 from store.models import (
+    CartProduct,
     Category,
-    SubCategory,
     Product,
     ProductImages,
-    CartProduct,
-    Cart
+    SubCategory,
 )
 
 
 class ProductImagesSerializer(serializers.ModelSerializer, ImageSerializeMixin):
-    """ Сериализатор изображений. """
+    """Сериализатор изображений."""
 
     class Meta:
         model = ProductImages
@@ -22,7 +23,7 @@ class ProductImagesSerializer(serializers.ModelSerializer, ImageSerializeMixin):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    """ Сериализатор продукта. """
+    """Сериализатор продукта."""
 
     images = ProductImagesSerializer(many=True, read_only=True)
 
@@ -34,7 +35,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class SubCategorySerializer(ImageSerializeMixin, serializers.ModelSerializer):
-    """ Сериализатор субкатегории. """
+    """Сериализатор субкатегории."""
 
     product = ProductSerializer(many=True, read_only=True)
 
@@ -46,20 +47,19 @@ class SubCategorySerializer(ImageSerializeMixin, serializers.ModelSerializer):
 
 
 class CategorySerializer(ImageSerializeMixin, serializers.ModelSerializer):
-    """ Сериализатор категории. """
+    """Сериализатор категории."""
 
     subcategory = SubCategorySerializer(many=True, read_only=True)
-    product = ProductSerializer(many=True, read_only=True)
 
     class Meta:
         model = Category
 
-        fields = ["name", "slug", "image", "subcategory", "product"]
+        fields = ["name", "slug", "image", "subcategory", ]
         read_only_fields = ["slug"]
 
 
 class CartProductSerializer(serializers.ModelSerializer):
-    """ Сериализатор товара в корзине. """
+    """Сериализатор товара в корзине."""
 
     name = serializers.CharField(source='product.name', read_only=True)
     price = serializers.DecimalField(source='product.price', max_digits=14, decimal_places=2, read_only=True)
@@ -73,33 +73,13 @@ class CartProductSerializer(serializers.ModelSerializer):
             'product': {'write_only': True},
         }
 
-    def get_total_price(self, obj):
-        """ Вычисляет стоимость позиции (цена * количество). """
+    def get_total_price(self, obj) -> Decimal:
+        """Вычисляет стоимость позиции (цена * количество)."""
         return obj.product.price * obj.quantity
 
     def validate_quantity(self, value):
-        """ Проверка, что количество больше нуля. """
+        """Проверка, что количество больше нуля."""
         if value <= 0:
             raise serializers.ValidationError("Количество должно быть больше нуля.")
         return value
 
-
-class CartSerializer(serializers.ModelSerializer):
-    """ Сериализатор корзины. """
-
-    items = CartProductSerializer(source='cartproduct_set', many=True, read_only=True)
-    total_quantity = serializers.SerializerMethodField()
-    total_sum = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Cart
-        fields = ['id', 'items', 'total_quantity', 'total_sum']
-        read_only_fields = ['owner']
-
-    def get_total_quantity(self, obj):
-        """ Суммирует количество всех товаров в корзине. """
-        return sum(item.quantity for item in obj.cartproduct_set.all())
-
-    def get_total_sum(self, obj):
-        """ Суммирует стоимость всех товаров в корзине. """
-        return sum(item.product.price * item.quantity for item in obj.cartproduct_set.all())

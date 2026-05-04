@@ -18,46 +18,47 @@ dependencies = [
     "uvicorn>=0.38.0",
     "unidecode>=1.4.0",
     "django-imagekit>=6.1.0",
+    "djangorestframework-simplejwt>=5.5.1",
 ]
 
-
 [tool.ruff]
-line-length = 119
-indent-width = 4
 target-version = "py313"
+
+line-length = 119
+
+indent-width = 4
+
+src = ["src"]
+
 exclude = [
-    "src/tests/**",
-    ".git",
+    "src/**/migrations/**",
+    "src/**/tests/**",
+    "src/**/fixtures/**",
+    "src/**/__pycache__/**",
     ".venv",
-    "**/__pycache__/**",
-    "**/migrations/*"
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
 ]
 
 [tool.ruff.lint]
 select = [
     "E",
+    "W",
     "F",
     "I",
     "B",
-    "C4",
+    "C",
     "S",
-    "T20",
-    "T10",
+    "D",
+    "UP",
 ]
+
 ignore = [
     "E501",
-    "S110",
+    "S101",
 ]
 
-lint-selector = "all"
-fix-selector = "all"
+fixable = ["ALL"]
 
-[tool.ruff.isort]
-known-first-party = ["gro-store"]
-line-length = 119
-multi-line-output = 3
-skip-gitignore = true
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"

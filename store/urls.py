@@ -1,21 +1,26 @@
 from django.urls import path
-from store.views import (
-    CreateCategory,
-    UpdateCategory,
-    InfoCategory,
-    ListCategory,
-    DeleteCategory,
-    CreateSubCategory,
-    UpdateSubCategory,
-    InfoSubCategory,
-    ListSubCategory,
-    DeleteSubCategory,
-    CreateProduct,
-    UpdateProduct,
-    InfoProduct,
-    ListProduct,
-    DeleteProduct,
 
+from store.views import (
+    AddToCart,
+    ClearCart,
+    CreateCategory,
+    CreateProduct,
+    CreateSubCategory,
+    DeleteCategory,
+    DeleteProduct,
+    DeleteSubCategory,
+    InfoCart,
+    InfoCategory,
+    InfoProduct,
+    InfoSubCategory,
+    ListCategory,
+    ListProduct,
+    ListSubCategory,
+    RemoveFromCart,
+    UpdateCart,
+    UpdateCategory,
+    UpdateProduct,
+    UpdateSubCategory,
 )
 
 app_name = 'store'
@@ -39,4 +44,9 @@ urlpatterns = [
     path('product/list/', ListProduct.as_view(), name='product_list'),
     path('product/delete/<int:pk>/', DeleteProduct.as_view(), name='product_delete'),
 
+    path('cart/add/', AddToCart.as_view(), name='cart_add-item'),
+    path('cart/update/', UpdateCart.as_view(), name='cart_update'),
+    path('cart/remove/', RemoveFromCart.as_view(), name='cart_remove_item'),
+    path('cart/info/', InfoCart.as_view(), name='cart_info'),
+    path('cart/clear/', ClearCart.as_view(), name='cart_clear'),
 ]

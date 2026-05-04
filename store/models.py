@@ -1,13 +1,14 @@
+from config.settings import AUTH_USER_MODEL
 from django.db import models
+from django.db.models import CASCADE, PROTECT, SET_NULL
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
-from django.db.models import SET_NULL, PROTECT, CASCADE
-from config.settings import AUTH_USER_MODEL
+
 from store.mixins import AutoSlugMixin
 
 
 class Category(AutoSlugMixin, models.Model):
-    """ Категория продукта. """
+    """Категория продукта."""
 
     name = models.CharField(unique=True, max_length=50, verbose_name="категория")
     image = models.ImageField(
@@ -21,6 +22,8 @@ class Category(AutoSlugMixin, models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="обновлён")
 
     def __str__(self):
+        """Вывод удобного текста."""
+
         return f"{self.name}"
 
     class Meta:
@@ -30,7 +33,7 @@ class Category(AutoSlugMixin, models.Model):
 
 
 class SubCategory(AutoSlugMixin, models.Model):
-    """ Подкатегория продукта. """
+    """Подкатегория продукта."""
 
     name = models.CharField(unique=True, max_length=50, verbose_name="подкатегория")
     image = models.ImageField(
@@ -50,6 +53,8 @@ class SubCategory(AutoSlugMixin, models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="обновлён")
 
     def __str__(self):
+        """Вывод удобного текста."""
+
         return f"{self.name}"
 
     class Meta:
@@ -59,7 +64,7 @@ class SubCategory(AutoSlugMixin, models.Model):
 
 
 class Product(AutoSlugMixin, models.Model):
-    """ Продукт. """
+    """Продукт."""
 
     name = models.CharField(unique=True, max_length=50, verbose_name="название")
     category = models.ForeignKey(
@@ -76,6 +81,8 @@ class Product(AutoSlugMixin, models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="обновлён")
 
     def __str__(self):
+        """Вывод удобного текста."""
+
         return f"{self.name}"
 
     class Meta:
@@ -85,7 +92,7 @@ class Product(AutoSlugMixin, models.Model):
 
 
 class ProductImages(models.Model):
-    """ Изображения для продуктов. """
+    """Изображения для продуктов."""
 
     product = models.ForeignKey("Product", on_delete=CASCADE, related_name="images")
     image = models.ImageField(
@@ -108,21 +115,31 @@ class ProductImages(models.Model):
 
     order = models.PositiveSmallIntegerField(default=1)
 
+    def __str__(self):
+        """Вывод удобного текста."""
+
+        return f"{self.product}"
+
     class Meta:
         db_table = "product_images"
 
 
 class Cart(models.Model):
-    """ Корзина. """
+    """Корзина."""
 
     owner = models.ForeignKey(AUTH_USER_MODEL, on_delete=PROTECT, related_name="carts")
+
+    def __str__(self):
+        """Вывод удобного текста."""
+
+        return f"{self.owner}"
 
     class Meta:
         db_table = "cart"
 
 
 class CartProduct(models.Model):
-    """ Промежуточная модель корзина-товар. """
+    """Промежуточная модель корзина-товар."""
 
     cart = models.ForeignKey("Cart", on_delete=SET_NULL, null=True)
     product = models.ForeignKey("Product", on_delete=SET_NULL, null=True)
@@ -130,6 +147,11 @@ class CartProduct(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="создан")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="обновлён")
+
+    def __str__(self):
+        """Вывод удобного текста."""
+
+        return f"{self.cart}"
 
     class Meta:
         unique_together = ("cart", "product")
