@@ -97,7 +97,8 @@ class ProductImages(models.Model):
     product = models.ForeignKey("Product", on_delete=CASCADE, related_name="images")
     image = models.ImageField(
         upload_to="products/",
-        verbose_name="изображения"
+        verbose_name="изображения",
+        default="static/images/no_image_product.png"
     )
     image_small = ImageSpecField(source='image',
                                  processors=[ResizeToFill(100, 100)],

@@ -75,11 +75,12 @@ class CartProductSerializer(serializers.ModelSerializer):
 
     def get_total_price(self, obj) -> Decimal:
         """Вычисляет стоимость позиции (цена * количество)."""
+
         return obj.product.price * obj.quantity
 
     def validate_quantity(self, value):
         """Проверка, что количество больше нуля."""
+
         if value <= 0:
             raise serializers.ValidationError("Количество должно быть больше нуля.")
         return value
-

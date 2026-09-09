@@ -6,4 +6,4 @@ class StoreConfig(AppConfig):
     name = 'store'
 
     def ready(self):
-        pass
+        import store.signals  # noqa: F401

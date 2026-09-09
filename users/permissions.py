@@ -5,4 +5,4 @@ class OwnerOnlyPerm(BasePermission):
     """Разрешения на обновление."""
 
     def has_object_permission(self, request, view, obj):
-        return obj.owner == request.user
+        return obj == request.user

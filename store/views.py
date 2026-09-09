@@ -1,13 +1,21 @@
 from django.db.models import F, FloatField, Prefetch, Sum
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
 
 from store.mixins import cart_tags_mixin, category_tags_mixin, product_tags_mixin, sub_category_tags_mixin
 from store.models import Cart, CartProduct, Category, Product, ProductImages, SubCategory
 from store.serializers import CartProductSerializer, CategorySerializer, ProductSerializer, SubCategorySerializer
+
+
+class StorePagination(PageNumberPagination):
+    """ Настройки пагинации. """
+
+    page_size = 100
 
 
 class BaseListView(ListAPIView):
@@ -30,6 +38,7 @@ class CreateProduct(CreateAPIView):
     """Создание продукта."""
 
     serializer_class = ProductSerializer
+    queryset = Product.objects.all()
 
 
 @product_tags_mixin
@@ -55,7 +64,7 @@ class ListProduct(BaseListView):
     """Список продуктов."""
 
     serializer_class = ProductSerializer
-    page_size = 100
+    pagination_class = StorePagination
     queryset = Product.objects.prefetch_related(
         Prefetch('images', queryset=ProductImages.objects.order_by('order'))
     )
@@ -66,6 +75,7 @@ class DeleteProduct(DestroyAPIView):
     """Удаление продукта."""
 
     serializer_class = ProductSerializer
+    queryset = Product.objects.all()
 
 
 # endregion
@@ -76,6 +86,7 @@ class CreateCategory(CreateAPIView):
     """Создание категории."""
 
     serializer_class = CategorySerializer
+    queryset = Category.objects.all()
 
 
 @category_tags_mixin
@@ -92,8 +103,9 @@ class InfoCategory(BaseDetailView):
 
     serializer_class = CategorySerializer
     queryset = Category.objects.prefetch_related(
-        'category',
-        Prefetch('product', queryset=Product.objects.prefetch_related('images'))
+        Prefetch('sub_categories', queryset=SubCategory.objects.prefetch_related(
+            Prefetch('products', queryset=Product.objects.prefetch_related('images'))
+        ))
     )
 
 
@@ -113,6 +125,7 @@ class DeleteCategory(DestroyAPIView):
     """Удаление категории."""
 
     serializer_class = CategorySerializer
+    queryset = Category.objects.all()
 
 
 # endregion
@@ -123,6 +136,7 @@ class CreateSubCategory(CreateAPIView):
     """Создание под_категории."""
 
     serializer_class = SubCategorySerializer
+    queryset = SubCategory.objects.all()
 
 
 @sub_category_tags_mixin
@@ -138,7 +152,7 @@ class InfoSubCategory(BaseDetailView):
     """Подробная информация под_категории."""
 
     serializer_class = SubCategorySerializer
-    queryset = SubCategory.objects.prefetch_related('product')
+    queryset = SubCategory.objects.prefetch_related('products')
 
 
 @sub_category_tags_mixin
@@ -146,7 +160,7 @@ class ListSubCategory(BaseListView):
     """Список под_категорий."""
 
     serializer_class = SubCategorySerializer
-    queryset = SubCategory.objects.prefetch_related('product')
+    queryset = SubCategory.objects.prefetch_related('products')
 
 
 @sub_category_tags_mixin
@@ -165,26 +179,26 @@ class AddToCart(APIView):
     """Добавить продукт в корзину."""
 
     serializer_class = CartProductSerializer
-    permission_classes = [IsAuthenticated, ]
+    permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        product_id = request.data.get('product_id')
-        quantity = request.data.get('quantity', 1)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        try:
-            product = Product.objects.get(id=product_id)
-        except Product.DoesNotExist:
-            return Response({'error': 'Продукт не найден'}, status=404)
+        product = serializer.validated_data['product']
+        quantity = serializer.validated_data.get('quantity', 1)
 
-        cart, created = Cart.objects.get_or_create(user=request.user)
-        cart_item, created = CartProduct.objects.get_or_create(cart=cart, product=product)
-
+        cart, _ = Cart.objects.get_or_create(owner=self.request.user)
+        cart_item, created = CartProduct.objects.get_or_create(
+            cart=cart, product=product
+        )
         if not created:
-            cart_item.quantity += int(quantity)
-        cart_item.save()
+            cart_item.quantity += quantity
+            cart_item.save()
 
-        serializer = CartProductSerializer(cart_item)
-        return Response(serializer.data, status=201)
+        return Response(
+            CartProductSerializer(cart_item).data, status=status.HTTP_201_CREATED
+        )
 
 
 @cart_tags_mixin
@@ -192,21 +206,17 @@ class UpdateCart(APIView):
     """Изменить количество продуктов в корзине."""
 
     serializer_class = CartProductSerializer
-    permission_classes = [IsAuthenticated, ]
+    permission_classes = [IsAuthenticated]
 
-    def put(self, request, item_id):
-        quantity = request.data.get('quantity')
-        if not quantity:
-            return Response({'error': 'Укажите количество'}, status=400)
+    def get_queryset(self):
+        return CartProduct.objects.filter(cart__owner=self.request.user)
 
-        try:
-            cart_item = CartProduct.objects.get(id=item_id, cart__user=request.user)
-        except CartProduct.DoesNotExist:
-            return Response({'error': 'Товар не найден в корзине'}, status=404)
-
-        cart_item.quantity = quantity
-        cart_item.save()
-        serializer = CartProductSerializer(cart_item)
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
         return Response(serializer.data)
 
 
@@ -219,7 +229,7 @@ class RemoveFromCart(APIView):
 
     def delete(self, request, item_id):
         try:
-            cart_item = CartProduct.objects.get(id=item_id, cart__user=request.user)
+            cart_item = CartProduct.objects.get(id=item_id, cart__owner=request.user)
             cart_item.delete()
             return Response({'message': 'Товар удалён из корзины'}, status=204)
         except CartProduct.DoesNotExist:
@@ -234,7 +244,7 @@ class InfoCart(APIView):
     permission_classes = [IsAuthenticated, ]
 
     def get(self, request):
-        cart, created = Cart.objects.get_or_create(user=request.user)
+        cart, created = Cart.objects.get_or_create(owner=request.user)
         items = cart.items.all()
         serializer = CartProductSerializer(items, many=True)
 
@@ -258,7 +268,7 @@ class ClearCart(APIView):
     permission_classes = [IsAuthenticated, ]
 
     def delete(self, request):
-        cart, created = Cart.objects.get_or_create(user=request.user)
+        cart, created = Cart.objects.get_or_create(owner=request.user)
         cart.items.all().delete()
         return Response({'message': 'Корзина очищена'}, status=204)
 

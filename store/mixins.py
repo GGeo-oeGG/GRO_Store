@@ -10,6 +10,8 @@ class ImageSerializeMixin:
     image = serializers.ImageField(
         use_url=True,
         allow_empty_file=False,
+        allow_null=True,
+        required=False,
         max_length=None
     )
 
@@ -33,8 +35,9 @@ class AutoSlugMixin:
         return unique_slug
 
     def save(self, *args, **kwargs):
-
-        if not getattr(self, self.slug_field_name):
+        slug_value = getattr(self, self.slug_field_name)
+        source_value = getattr(self, self.slug_from_field)
+        if not slug_value and source_value:
             setattr(self, self.slug_field_name, self._generate_unique_slug())
         super().save(*args, **kwargs)
 
