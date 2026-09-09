@@ -74,6 +74,12 @@ class Product(AutoSlugMixin, models.Model):
         verbose_name="категория",
         related_name="products"
     )
+    image = models.ImageField(
+        upload_to="products/",
+        null=True, blank=True,
+        verbose_name="изображение",
+        default="products/default_product.png"
+    )
     slug = models.SlugField(unique=True, blank=True)  # blank = True - чтобы на пустое поле не ругалась админка
     price = models.DecimalField(max_digits=14, decimal_places=2, default=0.0, verbose_name="цена")
 
@@ -98,7 +104,7 @@ class ProductImages(models.Model):
     image = models.ImageField(
         upload_to="products/",
         verbose_name="изображения",
-        default="static/images/no_image_product.png"
+        default="products/default_product.png"
     )
     image_small = ImageSpecField(source='image',
                                  processors=[ResizeToFill(100, 100)],

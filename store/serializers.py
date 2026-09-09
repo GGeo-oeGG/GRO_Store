@@ -22,7 +22,7 @@ class ProductImagesSerializer(serializers.ModelSerializer, ImageSerializeMixin):
         read_only_fields = ["order"]
 
 
-class ProductSerializer(serializers.ModelSerializer):
+class ProductSerializer(ImageSerializeMixin, serializers.ModelSerializer):
     """Сериализатор продукта."""
 
     images = ProductImagesSerializer(many=True, read_only=True)
@@ -30,32 +30,32 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
 
-        fields = ["name", "category", "slug", "images", "price"]
-        read_only_fields = ["slug"]
+        fields = ["id", "name", "category", "slug", "image", "images", "price"]
+        read_only_fields = ["slug", "id"]
 
 
 class SubCategorySerializer(ImageSerializeMixin, serializers.ModelSerializer):
     """Сериализатор субкатегории."""
 
-    product = ProductSerializer(many=True, read_only=True)
+    products = ProductSerializer(many=True, read_only=True)
 
     class Meta:
         model = SubCategory
 
-        fields = ["name", "slug", "image", "product"]
-        read_only_fields = ["slug"]
+        fields = ["id", "name", "slug", "image", "products"]
+        read_only_fields = ["slug", "id"]
 
 
 class CategorySerializer(ImageSerializeMixin, serializers.ModelSerializer):
     """Сериализатор категории."""
 
-    subcategory = SubCategorySerializer(many=True, read_only=True)
+    sub_categories = SubCategorySerializer(many=True, read_only=True)
 
     class Meta:
         model = Category
 
-        fields = ["name", "slug", "image", "subcategory", ]
-        read_only_fields = ["slug"]
+        fields = ["id", "name", "slug", "image", "sub_categories"]
+        read_only_fields = ["slug", "id"]
 
 
 class CartProductSerializer(serializers.ModelSerializer):
@@ -70,12 +70,14 @@ class CartProductSerializer(serializers.ModelSerializer):
         fields = ['id', 'product', 'name', 'price', 'quantity', 'total_price']
         read_only_fields = ['id', 'name', 'price', 'total_price']
         extra_kwargs = {
-            'product': {'write_only': True},
+            'product': {'write_only': True, 'required': False},
         }
 
     def get_total_price(self, obj) -> Decimal:
         """Вычисляет стоимость позиции (цена * количество)."""
 
+        if obj.product is None:
+            return Decimal("0.00")
         return obj.product.price * obj.quantity
 
     def validate_quantity(self, value):

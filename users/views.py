@@ -4,7 +4,7 @@ from rest_framework.generics import (
     RetrieveAPIView,
     RetrieveUpdateAPIView,
 )
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from users.mixins import CurrentCustomUserMixin, users_tags_mixin
 from users.permissions import OwnerOnlyPerm
@@ -15,6 +15,7 @@ from users.serializers import CustomUserSerializer
 class CreateCustomUser(CurrentCustomUserMixin, CreateAPIView):
     """Создание пользователя."""
 
+    permission_classes = [AllowAny]
     serializer_class = CustomUserSerializer
 
 
