@@ -97,7 +97,6 @@ class ProductImages(models.Model):
     product = models.ForeignKey("Product", on_delete=CASCADE, related_name="images")
     image = models.ImageField(
         upload_to="products/",
-        null=True, blank=True,
         verbose_name="изображения"
     )
     image_small = ImageSpecField(source='image',
@@ -141,7 +140,7 @@ class Cart(models.Model):
 class CartProduct(models.Model):
     """Промежуточная модель корзина-товар."""
 
-    cart = models.ForeignKey("Cart", on_delete=SET_NULL, null=True)
+    cart = models.ForeignKey("Cart", on_delete=SET_NULL, null=True, related_name="items")
     product = models.ForeignKey("Product", on_delete=SET_NULL, null=True)
     quantity = models.PositiveSmallIntegerField(default=1)
 

@@ -98,8 +98,9 @@ DATABASES = {
         "NAME": env.str("NAME"),
         "USER": env.str("USER"),
         "PASSWORD": env.str("PASSWORD"),
-        "HOST": env.str("HOST"),
-        "PORT": env.int("PORT"),
+        "HOST": env.str("HOST", "localhost"),
+        "PORT": env.int("PORT", 5432),
+        "ATOMIC_REQUESTS": env.bool("ATOMIC_REQUESTS", True)
     }
 }
 

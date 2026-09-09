@@ -8,8 +8,8 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True, verbose_name="Ваш Email")
     name = models.CharField(null=True, blank=True, verbose_name="Имя")
 
-    created_at = models.DateTimeField(auto_now=True, verbose_name="Добавлен")
-    updated_at = models.DateTimeField(auto_now_add=True, verbose_name="Изменён")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Добавлен")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Изменён")
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = [
