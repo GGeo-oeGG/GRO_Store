@@ -1,8 +1,12 @@
 ### Онлайн магазин
 
-## GRO_Store
+## GRO Store - Backend
 
 ###### Grocery store
+
+Фронтэнд часть под этот бэк - [тут](https://github.com/GGeo-oeGG/gro-store-frontend)
+
+Конечно можно использовать свой фронт!
 
 ### Часть задания (небольшой скрипт)
 
@@ -17,7 +21,7 @@ python manage.py get_n_elements 100
 
 [Код скрипта](users/management/commands/get_n_elements.py).
 
-### Описание основного проекта
+## Описание основного проекта
 
 Проект REST API интернет-магазина, на Django и DRF
 
